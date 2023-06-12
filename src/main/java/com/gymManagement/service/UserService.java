@@ -1,18 +1,25 @@
 package com.gymManagement.service;
 
+import com.gymManagement.dto.UserDto;
 import com.gymManagement.model.Role;
 import com.gymManagement.model.User;
-import com.gymManagement.model.UserRole;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
 
-//    User createUser(User user, List<UserRole> userRoleList) throws Exception;
+    UserDto create(UserDto userDto) throws Exception;
 
-    User createUser(User user, List<Role> roles) throws Exception;
-    User getUserByUserName(String username);
-    String deleteUser(Long id);
-
-    User updateUser(Long userId,User user);
+    UserDto createUser(UserDto userDto) throws Exception;
+    UserDto createStaff(UserDto userDto) throws Exception;
+    UserDto updateUser(Long userId, UserDto userDto) throws Exception;
+    String deleteUser(Long userId);
+    UserDto getUserByEmail(String email);
+    UserDto getUserDto(User user);
+    List<UserDto> getAllUser();
+    List<UserDto> getAllStaff();
+    Long getTotalUserCount();
+    UserDto getUserDetail(Principal principal);
 }

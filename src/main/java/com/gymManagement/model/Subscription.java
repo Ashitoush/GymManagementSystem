@@ -9,7 +9,6 @@ import lombok.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "subscription")
-@ToString
 public class Subscription {
 
     @Id
@@ -19,6 +18,12 @@ public class Subscription {
 
     @Column(name = "subscription_name")
     private String subscriptionName;
+
+    @Column(name = "subscription_description")
+    private String subscriptionDescription;
+
+    @Column(name = "duration")
+    private String duration;
 
     @Column(name = "amount")
     private Long amount;

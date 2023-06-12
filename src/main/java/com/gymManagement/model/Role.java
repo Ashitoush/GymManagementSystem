@@ -1,12 +1,14 @@
 package com.gymManagement.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
-import java.util.List;
+import java.util.Set;
 
-@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 @Entity
 @Table(name = "role")
 public class Role {
@@ -19,7 +21,14 @@ public class Role {
     @Column(name = "role_name")
     private String roleName;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "role")
-    @JsonManagedReference(value = "role")
-    private List<UserRole>  userRoles;
+    @ManyToMany(mappedBy = "userRoles")
+    private Set<User> userSet;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "role_authority",
+            joinColumns = @JoinColumn(name = "role_id_fk", referencedColumnName = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "authority_id_fk", referencedColumnName = "authority_id")
+    )
+    private Set<Authority> authorities;
 }
