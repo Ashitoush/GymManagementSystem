@@ -1,6 +1,7 @@
 package com.gymManagement.service.implementation;
 
 import com.gymManagement.dto.PaymentDto;
+import com.gymManagement.dto.SearchDto;
 import com.gymManagement.model.Payment;
 import com.gymManagement.model.User;
 import com.gymManagement.repo.PaymentRepo;
@@ -137,6 +138,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public List<Payment> searchPaymentByDate(Long userId, SearchDto searchDto) {
+        LocalDate date = searchDto.getDate();
+        List<Payment> payments = this.paymentRepo.findByDateAndUserId(userId, date);
+
+        return payments;
+    }
+
+    @Override
     public Map<String, Object> calculateDueAmount(Principal principal) {
         Map<String, Object> message = new HashMap<>();
         User loggedInUser = userRepo.findByEmail(principal.getName());
@@ -184,6 +193,7 @@ public class PaymentServiceImpl implements PaymentService {
         return message;
     }
 
+    @Override
     public PaymentDto convertToDto(Payment payment) {
         PaymentDto paymentDto = new PaymentDto();
         paymentDto.setPaymentId(payment.getPaymentId());
@@ -195,6 +205,42 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentDto;
     }
 
+    @Override
+    public List<PaymentDto> convertToDto(List<Payment> payments) {
+        List<PaymentDto> paymentDtos = new ArrayList<>();
 
+        for (Payment payment : payments) {
+            PaymentDto paymentDto = new PaymentDto();
 
+            paymentDto.setPaymentId(payment.getPaymentId());
+            paymentDto.setAmount(payment.getAmount());
+            paymentDto.setDueAmount(payment.getDueAmount());
+            paymentDto.setPaidAmount(payment.getPaidAmount());
+            paymentDto.setPaymentDate(payment.getPaymentDate());
+            paymentDto.setNameOfUser(payment.getUser().getUserName());
+
+            paymentDtos.add(paymentDto);
+        }
+
+        return paymentDtos;
+    }
+
+    @Override
+    public List<Payment> convertToEntity(List<PaymentDto> paymentDtos) {
+        List<Payment> payments = new ArrayList<>();
+
+        for (PaymentDto paymentDto : paymentDtos) {
+            Payment payment = new Payment();
+
+            payment.setPaymentId(paymentDto.getPaymentId());
+            payment.setAmount(paymentDto.getAmount());
+            payment.setDueAmount(paymentDto.getDueAmount());
+            payment.setPaidAmount(paymentDto.getPaidAmount());
+            payment.setPaymentDate(paymentDto.getPaymentDate());
+            payment.setUser(userRepo.findByUserName(paymentDto.getNameOfUser()));
+
+            payments.add(payment);
+        }
+        return payments;
+    }
 }

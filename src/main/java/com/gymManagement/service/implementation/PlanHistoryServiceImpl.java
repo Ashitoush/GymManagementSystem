@@ -116,6 +116,36 @@ public class PlanHistoryServiceImpl implements PlanHistoryService {
         return message;
     }
 
+    @Override
+    public List<PlanHistoryDto> searchBySubscriptionUser(Long userId, Long subscriptionId) {
+        List<PlanHistory> planHistoryList = this.planHistoryRepo.findBySubscription(subscriptionId, userId);
+
+        List<PlanHistoryDto> planHistoryDtoList = new ArrayList<>();
+
+        for (PlanHistory planHistory : planHistoryList) {
+            PlanHistoryDto planHistoryDto = modelMapper.map(planHistory, PlanHistoryDto.class);
+            String subscriptionName = planHistory.getSubscription().getSubscriptionName();
+            planHistoryDto.setSubscriptionName(subscriptionName);
+            planHistoryDtoList.add(planHistoryDto);
+        }
+        return planHistoryDtoList;
+    }
+
+    @Override
+    public List<PlanHistoryDto> searchBySubscription(Long subscriptionId) {
+        List<PlanHistory> planHistoryList = this.planHistoryRepo.findBySubscription(subscriptionId);
+
+        List<PlanHistoryDto> planHistoryDtoList = new ArrayList<>();
+
+        for (PlanHistory planHistory : planHistoryList) {
+            PlanHistoryDto planHistoryDto = modelMapper.map(planHistory, PlanHistoryDto.class);
+            String subscriptionName = planHistory.getSubscription().getSubscriptionName();
+            planHistoryDto.setSubscriptionName(subscriptionName);
+            planHistoryDtoList.add(planHistoryDto);
+        }
+        return planHistoryDtoList;
+    }
+
 
     private User getUserById(Long userId) {
         Optional<User> optionalUser = userRepo.findById(userId);

@@ -1,6 +1,7 @@
 package com.gymManagement.service;
 
 import com.gymManagement.dto.PlanHistoryDto;
+import com.gymManagement.model.PlanHistory;
 
 import java.security.Principal;
 import java.util.List;
@@ -14,4 +15,6 @@ public interface PlanHistoryService {
     List<PlanHistoryDto> getPlanHistoryByUserId(Long userId);
     String deletePlanHistory(Long planHistoryId) throws Exception;
     Map<String, Object> calculateRemainingDays(Principal principal);
+    List<PlanHistoryDto> searchBySubscription(Long subscriptionId);
+    List<PlanHistoryDto> searchBySubscriptionUser(Long userId, Long subscriptionId);
 }

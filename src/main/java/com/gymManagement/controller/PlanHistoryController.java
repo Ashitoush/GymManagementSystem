@@ -1,7 +1,9 @@
 package com.gymManagement.controller;
 
 import com.gymManagement.dto.PlanHistoryDto;
+import com.gymManagement.dto.SearchDto;
 import com.gymManagement.model.User;
+import com.gymManagement.repo.SubscriptionRepo;
 import com.gymManagement.repo.UserRepo;
 import com.gymManagement.service.PlanHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ public class PlanHistoryController {
     private PlanHistoryService planHistoryService;
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private SubscriptionRepo subscriptionRepo;
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('create_planHistory')")
@@ -139,6 +144,54 @@ public class PlanHistoryController {
             message.clear();
             message.put("status", 500);
             message.put("message", "error while deleting plan History");
+        }
+        return message;
+    }
+
+    @GetMapping("/searchPlanHistoryUserBySubscription")
+    public Map<String, Object> searchPlanHistoryUserBySubscription(@RequestBody SearchDto searchDto, Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " "  + loggedInUser.getLastName();
+
+        Long subscriptionId = this.subscriptionRepo.findBySubscriptionName(searchDto.getSubscriptionName()).getSubscriptionId();
+
+        List<PlanHistoryDto> planHistoryList = planHistoryService.searchBySubscriptionUser(loggedInUser.getId(), subscriptionId);
+
+        if(!planHistoryList.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "plan History retrieved");
+            message.put("fullName", fullName);
+            message.put("data", planHistoryList);
+        } else {
+            message.clear();
+            message.put("status", 500);
+            message.put("message", "error while retrieving plan History");
+        }
+        return message;
+    }
+
+    @GetMapping("/searchPlanHistoryBySubscription")
+    public Map<String, Object> searchPlanHistoryBySubscription(@RequestBody SearchDto searchDto, Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " "  + loggedInUser.getLastName();
+
+        Long subscriptionId = this.subscriptionRepo.findBySubscriptionName(searchDto.getSubscriptionName()).getSubscriptionId();
+
+        List<PlanHistoryDto> planHistoryList = planHistoryService.searchBySubscription(subscriptionId);
+
+        if(!planHistoryList.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "plan History retrieved");
+            message.put("fullName", fullName);
+            message.put("data", planHistoryList);
+        } else {
+            message.clear();
+            message.put("status", 500);
+            message.put("message", "error while retrieving plan History");
         }
         return message;
     }

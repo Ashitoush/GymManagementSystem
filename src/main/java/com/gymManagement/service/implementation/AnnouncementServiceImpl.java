@@ -1,9 +1,9 @@
 package com.gymManagement.service.implementation;
 
 import com.gymManagement.dto.AnnouncementDto;
+import com.gymManagement.dto.SearchDto;
 import com.gymManagement.helper.MergeSort;
 import com.gymManagement.model.Announcement;
-import com.gymManagement.model.Payment;
 import com.gymManagement.model.User;
 import com.gymManagement.repo.AnnouncementRepo;
 import com.gymManagement.repo.UserRepo;
@@ -93,6 +93,7 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         }
     }
 
+    @Override
     public List<AnnouncementDto> getAnnouncementsByUser() {
         List<Announcement> announcements = announcementRepo.findAll();
 
@@ -103,6 +104,38 @@ public class AnnouncementServiceImpl implements AnnouncementService {
                 .map(announcement -> modelMapper.map(announcement, AnnouncementDto.class))
                 .limit(3) // Limit the stream to the first 3 elements
                 .collect(Collectors.toList());
+
+        return announcementDtos;
+    }
+
+    @Override
+    public List<AnnouncementDto> searchAnnouncementByDate(SearchDto searchDto) {
+        LocalDate date = searchDto.getDate();
+
+        List<Announcement> announcements = announcementRepo.findByAnnouncementDate(date);
+
+        List<AnnouncementDto> announcementDtos = toAnnouncementDto(announcements);
+
+//        List<AnnouncementDto> announcementDtos = announcements.stream()
+//                .map(announcement -> modelMapper.map(announcement, AnnouncementDto.class))
+//                .collect(Collectors.toList());
+
+        return announcementDtos;
+    }
+
+    private List<AnnouncementDto> toAnnouncementDto(List<Announcement> announcements) {
+        List<AnnouncementDto> announcementDtos = new ArrayList<>();
+
+        for (Announcement announcement : announcements) {
+            AnnouncementDto announcementDto = new AnnouncementDto();
+
+            announcementDto.setAnnouncementId(announcement.getAnnouncementId());
+            announcementDto.setAnnouncementDate(announcement.getAnnouncementDate());
+            announcementDto.setTitle(announcement.getTitle());
+            announcementDto.setMessage(announcement.getMessage());
+
+            announcementDtos.add(announcementDto);
+        }
 
         return announcementDtos;
     }

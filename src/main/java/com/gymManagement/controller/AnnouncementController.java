@@ -1,6 +1,7 @@
 package com.gymManagement.controller;
 
 import com.gymManagement.dto.AnnouncementDto;
+import com.gymManagement.dto.SearchDto;
 import com.gymManagement.helper.MergeSort;
 import com.gymManagement.model.Announcement;
 import com.gymManagement.model.Payment;
@@ -129,6 +130,51 @@ public class AnnouncementController {
         } else {
             message.put("status", 500);
             message.put("message", "Error while deleting announcement");
+        }
+        return message;
+    }
+
+    @GetMapping("/searchAnnouncementByDate")
+    public Map<String, Object> searchAnnouncementByDate(@RequestBody SearchDto searchDto, Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " " + loggedInUser.getLastName();
+
+        List<AnnouncementDto> announcementDtos = this.announcementService.searchAnnouncementByDate(searchDto);
+
+        if (!announcementDtos.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "Retrieved announcements successfully");
+            message.put("fullName", fullName);
+            message.put("data", announcementDtos);
+        } else {
+            message.put("status", 500);
+            message.put("message", "Error while retrieving announcement");
+        }
+        return message;
+    }
+
+    @GetMapping("/getAllAnnouncementReverse")
+    public Map<String, Object> getAllAnnouncementsReverse(Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " " + loggedInUser.getLastName();
+        List<Announcement> announcements  = this.announcementRepo.findAll();
+        Comparator<Announcement> comparator = Comparator.comparing(Announcement::getAnnouncementDate);
+        announcements = this.mergeSort.mergeSort(announcements, comparator);
+
+        List<AnnouncementDto> announcementsDto = announcements.stream().map(announcement -> this.modelMapper.map(announcement, AnnouncementDto.class)).collect(Collectors.toList());
+
+        if (!announcementsDto.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "Retrieved announcements successfully");
+            message.put("fullName", fullName);
+            message.put("data", announcementsDto);
+        } else {
+            message.put("status", 500);
+            message.put("message", "Error while retrieving announcement");
         }
         return message;
     }

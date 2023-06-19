@@ -1,6 +1,7 @@
 package com.gymManagement.service;
 
 import com.gymManagement.dto.PaymentDto;
+import com.gymManagement.dto.SearchDto;
 import com.gymManagement.model.Payment;
 
 import java.security.Principal;
@@ -19,4 +20,8 @@ public interface PaymentService {
     Map<String, Object> calculateDueAmount(Principal principal);
     Map<String, Object> getLastPaymentAmount(Principal principal);
     Double getTotalDueAmount();
+    List<Payment> searchPaymentByDate(Long userId, SearchDto searchDto);
+    PaymentDto convertToDto(Payment payment);
+    List<PaymentDto> convertToDto(List<Payment> payments);
+    List<Payment> convertToEntity(List<PaymentDto> paymentDtos);
 }

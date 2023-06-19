@@ -1,6 +1,7 @@
 package com.gymManagement.controller;
 
 import com.gymManagement.dto.PaymentDto;
+import com.gymManagement.dto.SearchDto;
 import com.gymManagement.helper.MergeSort;
 import com.gymManagement.model.Payment;
 import com.gymManagement.model.User;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +43,7 @@ public class PaymentController {
     public Map<String, Object> createPayment(@RequestBody PaymentDto paymentDto) {
         Map<String, Object> message = new HashMap<>();
         PaymentDto createdPayment = paymentService.createPayment(paymentDto);
-        if(createdPayment != null) {
+        if (createdPayment != null) {
             message.put("status", 200);
             message.put("message", "payment created");
             message.put("data", createdPayment);
@@ -141,7 +143,7 @@ public class PaymentController {
                 .map(payment -> this.modelMapper.map(payment, PaymentDto.class))
                 .collect(Collectors.toList());
 
-        if(!paymentDtos.isEmpty()) {
+        if (!paymentDtos.isEmpty()) {
             message.put("status", 200);
             message.put("message", "retrieving payment");
             message.put("fullName", fullName);
@@ -166,7 +168,7 @@ public class PaymentController {
 
         String result = paymentService.deletePayment(paymentId);
 
-        if(!result.isEmpty()) {
+        if (!result.isEmpty()) {
             message.put("status", 200);
             message.put("message", result);
         } else {
@@ -182,7 +184,7 @@ public class PaymentController {
     public Map<String, Object> getTotalAmountCollectedThisMonth() {
         Map<String, Object> message = new HashMap<>();
         Double totalAmount = paymentService.getTotalAmountCollectedThisMonth();
-        if(totalAmount >= 0.0) {
+        if (totalAmount >= 0.0) {
             message.put("status", 200);
             message.put("message", "total amount collected this month");
             message.put("data", totalAmount);
@@ -194,4 +196,116 @@ public class PaymentController {
         return message;
     }
 
+    @GetMapping("/getPaymentsByUserReverse")
+    @PreAuthorize("hasAuthority('view_payment')")
+    public Map<String, Object> getPaymentsByUserReverse(Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " " + loggedInUser.getLastName();
+
+        List<Payment> payments = paymentService.getPaymentsByUserId(loggedInUser.getId());
+
+        Comparator<Payment> comparator = Comparator.comparing(Payment::getPaymentDate);
+        payments = this.mergeSort.mergeSort(payments, comparator);
+
+        List<PaymentDto> paymentDtos = payments.stream()
+                .map(payment -> this.modelMapper.map(payment, PaymentDto.class))
+                .collect(Collectors.toList());
+
+        if (!paymentDtos.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "retrieving payment");
+            message.put("fullName", fullName);
+            message.put("data", paymentDtos);
+        } else {
+            message.clear();
+            message.put("status", 500);
+            message.put("message", "error while retrieving payment");
+        }
+        return message;
+    }
+
+    @GetMapping("/searchPaymentUserByDate")
+    public Map<String, Object> getPaymentsUserByDate(@RequestBody SearchDto searchDto, Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " " + loggedInUser.getLastName();
+
+        List<Payment> payments = paymentService.searchPaymentByDate(loggedInUser.getId(), searchDto);
+
+//        List<PaymentDto> paymentDtos = payments.stream()
+//                .map(payment -> this.modelMapper.map(payment, PaymentDto.class))
+//                .collect(Collectors.toList());
+
+        List<PaymentDto> paymentDtos = paymentService.convertToDto(payments);
+
+        if (!paymentDtos.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "retrieving payment");
+            message.put("fullName", fullName);
+            message.put("data", paymentDtos);
+        } else {
+            message.clear();
+            message.put("status", 500);
+            message.put("message", "error while retrieving payment");
+        }
+        return message;
+    }
+
+    @GetMapping("/getAllPaymentReverse")
+    public Map<String, Object> getAllPaymentReverse(Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " " + loggedInUser.getLastName();
+
+        List<Payment> payments = paymentService.convertToEntity(paymentService.getAllPayments());
+
+        Comparator<Payment> comparator = Comparator.comparing(Payment::getPaymentDate);
+        payments = this.mergeSort.mergeSort(payments, comparator);
+
+        List<PaymentDto> paymentDtos = payments.stream()
+                .map(payment -> this.modelMapper.map(payment, PaymentDto.class))
+                .collect(Collectors.toList());
+
+        if (!paymentDtos.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "retrieving payment");
+            message.put("fullName", fullName);
+            message.put("data", paymentDtos);
+        } else {
+            message.clear();
+            message.put("status", 500);
+            message.put("message", "error while retrieving payment");
+        }
+        return message;
+    }
+
+    @GetMapping("/searchPaymentByDate")
+    public Map<String, Object> getPaymentsByDate(@RequestBody SearchDto searchDto, Principal principal) {
+        Map<String, Object> message = new HashMap<>();
+        User loggedInUser = this.userRepo.findByEmail(principal.getName());
+        String fullName = loggedInUser.getFirstName() + " " + loggedInUser.getLastName();
+
+        LocalDate date = searchDto.getDate();
+
+        List<Payment> payments = paymentRepo.findByPaymentDate(date);
+
+//        List<PaymentDto> paymentDtos = payments.stream()
+//                .map(payment -> this.modelMapper.map(payment, PaymentDto.class))
+//                .collect(Collectors.toList());
+
+        List<PaymentDto> paymentDtos = paymentService.convertToDto(payments);
+
+        if (!paymentDtos.isEmpty()) {
+            message.put("status", 200);
+            message.put("message", "retrieving payment");
+            message.put("fullName", fullName);
+            message.put("data", paymentDtos);
+        } else {
+            message.clear();
+            message.put("status", 500);
+            message.put("message", "error while retrieving payment");
+        }
+        return message;
+    }
 }
